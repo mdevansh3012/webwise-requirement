@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { downloadResponsesPDF, downloadSummaryPDF } from "@/lib/pdfGenerator";
+import { downloadBRD } from "@/lib/brdGenerator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface FormData {
@@ -239,6 +240,26 @@ const FormResponses = () => {
     }
   };
 
+  const exportBRD = async () => {
+    if (!formData || responses.length === 0) return;
+
+    try {
+      await downloadBRD(formData, responses);
+      
+      toast({
+        title: "BRD Generated Successfully",
+        description: "Your AI-powered Business Requirements Document has been downloaded.",
+      });
+    } catch (error) {
+      console.error("Error generating BRD:", error);
+      toast({
+        title: "BRD Generation failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatAnswer = (answer: any, type: string) => {
     if (answer === null || answer === undefined) return "No answer";
     
@@ -312,6 +333,10 @@ const FormResponses = () => {
                     <DropdownMenuItem onClick={exportSummaryPDF}>
                       <BarChartIcon className="h-4 w-4 mr-2" />
                       Export Summary PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportBRD}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Generate BRD (AI-Powered)
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -51,6 +51,10 @@ interface Question {
 const ClientForm = () => {
   const { clientName } = useParams<{ clientName: string }>();
   const navigate = useNavigate();
+  
+  // Fix the URL parsing issue by extracting only the client name
+  const actualClientName = clientName?.split('?')[0] || clientName;
+  
   const [form, setForm] = useState<Form | null>(null);
   const [sections, setSections] = useState<Section[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -66,14 +70,14 @@ const ClientForm = () => {
   }, [clientName]);
 
   const loadForm = async () => {
-    if (!clientName) return;
+    if (!actualClientName) return;
 
     try {
       // Load form
       const { data: formData, error: formError } = await supabase
         .from("forms")
         .select("*")
-        .eq("client_name", clientName)
+        .eq("client_name", actualClientName)
         .eq("is_active", true)
         .single();
 
@@ -353,7 +357,7 @@ const ClientForm = () => {
             <ClipboardList className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Form Not Found</h2>
             <p className="text-muted-foreground mb-6">
-              The questionnaire for "{clientName}" could not be found or is not currently active.
+              The questionnaire for "{actualClientName}" could not be found or is not currently active.
             </p>
             <Button onClick={() => navigate("/")} variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
