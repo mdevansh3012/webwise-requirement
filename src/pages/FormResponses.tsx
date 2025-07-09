@@ -8,13 +8,17 @@ import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   Download, 
+  FileText,
+  BarChart3 as BarChartIcon,
   Calendar,
   User,
-  FileText
+  FileText as FileIcon
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { downloadResponsesPDF, downloadSummaryPDF } from "@/lib/pdfGenerator";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface FormData {
   id: string;
@@ -184,6 +188,57 @@ const FormResponses = () => {
     ).join('\n');
   };
 
+  const exportPDF = () => {
+    if (!formData || responses.length === 0) return;
+
+    try {
+      downloadResponsesPDF(formData, responses, {
+        includeClientDetails: true,
+        includeFormDetails: true,
+        includeResponseSummary: true
+      });
+      
+      toast({
+        title: "PDF Generated",
+        description: "Your detailed responses report has been downloaded.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Export failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const exportSummaryPDF = () => {
+    if (!formData) return;
+
+    try {
+      // Calculate basic analytics
+      const analytics = {
+        completionRate: responses.length > 0 ? 100 : 0, // Simplified - could be enhanced
+        averageTimeToComplete: "N/A", // Would need timing data
+        mostCommonAnswers: [] // Could be calculated from responses
+      };
+
+      downloadSummaryPDF(formData, responses, analytics);
+      
+      toast({
+        title: "Summary PDF Generated",
+        description: "Your analytics summary has been downloaded.",
+      });
+    } catch (error) {
+      console.error("Error generating summary PDF:", error);
+      toast({
+        title: "Export failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const formatAnswer = (answer: any, type: string) => {
     if (answer === null || answer === undefined) return "No answer";
     
@@ -237,10 +292,30 @@ const FormResponses = () => {
               </div>
             </div>
             {responses.length > 0 && (
-              <Button onClick={exportResponses} className="shadow-elegant">
-                <Download className="h-4 w-4 mr-2" />
-                Export CSV
-              </Button>
+              <div className="flex gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button className="shadow-elegant">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={exportResponses}>
+                      <FileIcon className="h-4 w-4 mr-2" />
+                      Export as CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportPDF}>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Export as PDF (Detailed)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={exportSummaryPDF}>
+                      <BarChartIcon className="h-4 w-4 mr-2" />
+                      Export Summary PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             )}
           </div>
         </div>
@@ -252,7 +327,7 @@ const FormResponses = () => {
             <Card className="shadow-card border-0 bg-card/80 backdrop-blur-sm">
               <CardContent className="pt-6">
                 <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <FileIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No responses yet</h3>
                   <p className="text-muted-foreground">
                     Share your form link to start collecting responses.
