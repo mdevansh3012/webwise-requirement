@@ -37,7 +37,7 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You have been signed in successfully.",
         });
-        navigate("/admin");
+        navigate("/auth/callback");
       }
     } catch (error) {
       toast({
@@ -59,7 +59,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/admin`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
